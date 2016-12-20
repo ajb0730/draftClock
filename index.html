@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Draft Clock</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+        <style>
+html { min-width: 100%; min-height: 100%; overflow: hidden; }
+body { font-family: sans-serif; font-size: 12pt; width: 100%; height: 100%; overflow: hidden; }
+label { width: 200px; display: inline-block; }
+button { border-radius: 25px; }
+#draftBoard { display: none; width: 100%; height: 100%; }
+#container { width: 100%; height: 100%; position: relative; }
+.centered { width: auto; margin-left: auto; margin-right: auto; text-align: center; display: block }
+#draftNext { font-size: xx-large; padding-left: 50px; padding-right: 50px; padding-top: 25px; padding-bottom: 25px; margin-top: 10%; margin-bottom: 10%; }
+        </style>
+    </head>
+    <body>
+        <form name="setup" id="setup">
+            <fieldset>
+                <legend>Setup</legend>
+                <label for="rounds">Draft Name:</label>
+                <input type="text" id="name" name="name" /><br />
+                <label for="color">Draft Color:</label>
+                <input type="color" id="color" name="color" /><br />
+                <label for="rounds">Number of Rounds:</label>
+                <input type="number" id="rounds" name="rounds" value="24" min="1" max="100" required="required" /><br />
+                <label for="rounds">Number of People:</label>
+                <input type="number" id="teams" name="teams" value="10" min="1" max="100" required="required" /><br />
+                <label for="start"></label>
+                <button type="button" id="start" name="start">Start!</button>
+            </fieldset>
+        </form>
+        <div name="draftBoard" id="draftBoard">
+            <div id="container">
+                <h1 id="draftName" class="centered"></h1>
+                <p>&nbsp;</p>
+                <h2 id="draftRound"class="centered"></h2>
+                <h4 id="draftRoundOf"class="centered"></h4>
+                <p>&nbsp;</p>
+                <h2 id="draftTeam" class="centered"></h2>
+                <h4 id="draftPercent"class="centered"></h4>
+                <p>&nbsp;</p>
+                <h3 id="draftTimer" class="centered">00:00</h3>
+                <button type="button" id="draftNext" class="centered">Next</button>
+            </div>
+        </div>
+    </body>
+    <script>
+        var viewportHeight;
+        var viewportWidth;
+        if (document.compatMode === 'BackCompat') {
+            viewportHeight = document.body.clientHeight;
+            viewportWidth = document.body.clientWidth;
+        } else {
+            viewportHeight = document.documentElement.clientHeight;
+            viewportWidth = document.documentElement.clientWidth;
+        }
+
+        var populateDraft = function(rounds,teams) {
+            console.log('populateDraft(${rounds},${teams})');
+            var draft = [];
+            var total = rounds * teams;
+            var count = 0;
+
+            for(var r = 1; r <= rounds; r += 1) {
+                var start;
+                var end;
+                var incr;
+                if(r % 2 == 1) {
+                    start = 1;
+                    end = function(v) { return v <= teams; };
+                    incr = 1;
+                } else {
+                    start = teams;
+                    end = function(v) { return v >= 1; };
+                    incr = -1;
+                }
+                for(var t = start; end(t); t += incr) {
+                    count += 1;
+                    var percent = count / total * 100;
+                    draft.push({ "round": r, "rounds": rounds, "team": t, "teams": teams, "percent": percent });
+                }
+            }
+            return draft;
+        };
+
+        var timer;
+        var start;
+        var totalStart;
+        const minutes = 60;
+        const hours = 60 * 60;
+        const days = 60 * 60 * 24;
+
+        var nextRound = function(draft) {
+            window.clearTimeout(timer);
+            $('#draftTimer').text('00:00');
+            if(draft.length > 0) {
+                var current = draft.shift();
+                $('#draftRound').text('Round ' + current.round);
+                $('#draftRoundOf').text('of ' + current.rounds);
+                $('#draftTeam').text('Player ' + current.team);
+                $('#draftPercent').text(current.percent.toFixed(1) + '%');
+                start = new Date();
+                timer = window.setTimeout(tick,1000);
+            } else {
+                $('#draftRound').text('Draft Complete!');
+                $('#draftRoundOf').text('');
+                $('#draftTeam').text('');
+                $('#draftPercent').text('');
+                var s = Math.floor((new Date() - totalStart) / 1000);
+                var str = formatSeconds(s);
+                $('#draftTimer').text( str );
+                $('#draftNext').prop('disabled',true);
+                $('#draftNext').disable(true);
+                $('#draftNext').hide();
+            }
+        };
+
+        var tick = function() {
+            var s = Math.floor((new Date() - start) / 1000);
+            var str = formatSeconds(s);
+            $('#draftTimer').text( str );
+
+            timer = window.setTimeout(tick,1000);
+        };
+
+        var formatSeconds = function(s) {
+            var d = Math.floor(s / days);
+            s -= d * days;
+            var h = Math.floor(s / hours);
+            s -= h * hours;
+            var m = Math.floor(s / minutes);
+            s -= m * minutes;
+
+            var str = '';
+            if(d > 0) {
+                str += d + '.';
+            }
+            if(h > 0) {
+                str += h + ':';
+            }
+            if(m < 10) {
+                str += '0' + m + ':';
+            } else {
+                str += m + ':';
+            }
+            if(s < 10) {
+                str += '0' + s;
+            } else {
+                str += s;
+            }
+
+            return str;
+        };
+
+        $(document).ready(function(){
+            var draft;
+
+            $('#start').click(function(){
+                $('#setup').hide();
+                console.log('name: ' + $('#name').val());
+                console.log('color: ' + $('#color').val());
+                console.log('rounds: ' + $('#rounds').val());
+                console.log('teams: ' + $('#teams').val());
+
+                $('body').css({
+                    'color': $('#color').val()
+                });
+
+                $('#draftName').text($('#name').val());
+
+                $('#draftBoard').css({
+                    'width': viewportWidth,
+                    'height': viewportHeight
+                });
+
+                draft = populateDraft(parseInt($('#rounds').val()),parseInt($('#teams').val()));
+                totalStart = new Date();
+                nextRound(draft);
+
+                $('#draftBoard').show();
+            });
+
+            $('#draftNext').click(function(){
+                nextRound(draft);
+            });
+        });
+    </script>
+</html>
