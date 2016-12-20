@@ -9,7 +9,7 @@
 html { min-width: 100%; min-height: 100%; overflow: hidden; }
 body { font-family: sans-serif; font-size: 12pt; width: 100%; height: 100%; overflow: hidden; }
 label { width: 200px; display: inline-block; }
-button { border-radius: 25px; }
+button { border-radius: 10px; }
 #draftBoard { display: none; width: 100%; height: 100%; }
 #container { width: 100%; height: 100%; position: relative; }
 .centered { width: auto; margin-left: auto; margin-right: auto; text-align: center; display: block }
@@ -48,6 +48,7 @@ button { border-radius: 25px; }
         </div>
     </body>
     <script>
+        // Grab viewport size so we can make the div as big as possible
         var viewportHeight;
         var viewportWidth;
         if (document.compatMode === 'BackCompat') {
@@ -58,6 +59,7 @@ button { border-radius: 25px; }
             viewportWidth = document.documentElement.clientWidth;
         }
 
+        // pre-generates the snake draft
         var populateDraft = function(rounds,teams) {
             console.log('populateDraft(${rounds},${teams})');
             var draft = [];
@@ -68,43 +70,63 @@ button { border-radius: 25px; }
                 var start;
                 var end;
                 var incr;
+
+                // odd rounds (1, 3, 5, ...) count up from 1 ... N
                 if(r % 2 == 1) {
                     start = 1;
                     end = function(v) { return v <= teams; };
                     incr = 1;
+                // even rounds (2, 4, 6, ...) count down from N ... 1
                 } else {
                     start = teams;
                     end = function(v) { return v >= 1; };
                     incr = -1;
                 }
+
                 for(var t = start; end(t); t += incr) {
                     count += 1;
                     var percent = count / total * 100;
                     draft.push({ "round": r, "rounds": rounds, "team": t, "teams": teams, "percent": percent });
                 }
+
             }
             return draft;
         };
 
-        var timer;
-        var start;
-        var totalStart;
-        const minutes = 60;
-        const hours = 60 * 60;
-        const days = 60 * 60 * 24;
+        var timer;                  // unique timer id
+        var start;                  // when each player started his/her turn
+        var totalStart;             // when the overall draft started
 
+        const minutes = 60;         // seconds per minute
+        const hours = 60 * 60;      // seconds per hour
+        const days = 60 * 60 * 24;  // seconds per day
+
+        // function you call to advance to the next person in the draft
         var nextRound = function(draft) {
+
             window.clearTimeout(timer);
             $('#draftTimer').text('00:00');
+
+            // if the draft isn't done...
             if(draft.length > 0) {
+                // get the next 'player'
                 var current = draft.shift();
+
+                // update display
                 $('#draftRound').text('Round ' + current.round);
                 $('#draftRoundOf').text('of ' + current.rounds);
                 $('#draftTeam').text('Player ' + current.team);
                 $('#draftPercent').text(current.percent.toFixed(1) + '%');
+
+                // record when this player started
                 start = new Date();
+
+                // fire off the clock
                 timer = window.setTimeout(tick,1000);
+
+            // ... else draft is over
             } else {
+                // shut down the UI
                 $('#draftRound').text('Draft Complete!');
                 $('#draftRoundOf').text('');
                 $('#draftTeam').text('');
@@ -118,6 +140,7 @@ button { border-radius: 25px; }
             }
         };
 
+        // called by the timer, used to update the count-up clock display
         var tick = function() {
             var s = Math.floor((new Date() - start) / 1000);
             var str = formatSeconds(s);
@@ -126,6 +149,7 @@ button { border-radius: 25px; }
             timer = window.setTimeout(tick,1000);
         };
 
+        // turns an integer number of seconds into d.h:mm:ss format
         var formatSeconds = function(s) {
             var d = Math.floor(s / days);
             s -= d * days;
@@ -158,6 +182,7 @@ button { border-radius: 25px; }
         $(document).ready(function(){
             var draft;
 
+            // The 'Start' button sets up the UI, generates the draft order, and gets the first player started
             $('#start').click(function(){
                 $('#setup').hide();
                 console.log('name: ' + $('#name').val());
@@ -176,13 +201,17 @@ button { border-radius: 25px; }
                     'height': viewportHeight
                 });
 
+                // generate the draft turns
                 draft = populateDraft(parseInt($('#rounds').val()),parseInt($('#teams').val()));
                 totalStart = new Date();
+
+                // get the draft started
                 nextRound(draft);
 
                 $('#draftBoard').show();
             });
 
+            // The 'Next' button is used to advance to the next player
             $('#draftNext').click(function(){
                 nextRound(draft);
             });
