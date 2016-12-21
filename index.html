@@ -68,25 +68,24 @@
             <form class="form-horizontal text-center">
                 <div id="container" class="jumbotron">
                     <legend>
-                        <h1 id="draftName" class="xxlFont"></h1>
+                        <h1 id="draftName"></h1>
                     </legend>
 
-                    <div class="panel panel-primary">
-                        <div class="panel-heading">
-                            <h1 class="panel-title xxlFont">On The Clock</h1>
+                    <div id="clockPanel" class="panel panel-warning">
+                        <div id="clockHeader" class="panel-heading">
+                            <h2 class="panel-title xxlFont">On The Clock</h2>
                         </div>
                         <div class="panel-body">
                             <h1 id="draftTeam"></h1>
-                            <h2 id="draftTimer">00:00</h2>
                         </div>
                         <div class="panel-footer">
-                            <button type="button" id="draftNext" class="btn btn-warning btn-lg btn-block xxlFont">Next Selection</button>
+                            <h2 id="draftTimer">00:00</h2>
 
                         </div>
                     </div>
+                    <button type="button" id="draftNext" class="btn btn-warning btn-lg btn-block xxlFont">Cheers!</button>
 
                     <div class="col-xs-12">
-                        <p>&nbsp;</p>
                         <h2 class="text-large">
                             <span id="draftRound"></span>
                             <span id="draftRoundOf"></span>
@@ -96,8 +95,7 @@
                             <span id="selectionRoundOf"></span>
                         </h3>
 
-                        <h4 id="draftPercent"></h4>
-                        <p>&nbsp;</p>
+                        <label id="draftPercent"></label>
 
 
                     </div>
@@ -257,8 +255,11 @@
             console.log('rounds: ' + $('#rounds').val());
             console.log('teams: ' + $('#teams').val());
 
-            $('body').css({
-                'color': $('#color').val()
+            $('#clockHeader').css({
+                'background': $('#color').val()
+            });
+            $('#draftNext').css({
+                'background': $('#color').val()
             });
 
             $('#draftName').text($('#name').val());
