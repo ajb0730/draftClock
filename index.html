@@ -66,23 +66,42 @@
     <div class="col-xs-10 col-xs-offset-1">
         <div name="draftBoard" id="draftBoard">
             <form class="form-horizontal text-center">
-                <div id="container" class="well">
+                <div id="container" class="jumbotron">
                     <legend>
                         <h1 id="draftName" class="xxlFont"></h1>
                     </legend>
-                    <p>&nbsp;</p>
-                    <h2 class="text-large" id="draftRound"></h2>
-                    <h4 id="draftRoundOf"></h4>
-                    <p>&nbsp;</p>
-                    <h2 id="draftTeam"></h2>
-                    <h4 id="draftPercent"></h4>
-                    <p>&nbsp;</p>
-                    <h3 id="draftTimer">00:00</h3>
-                    <div class="col-xs-12">
 
-                        <button type="button" id="draftNext" class="btn btn-warning btn-lg btn-block xxlFont">Next</button>
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            <h1 class="panel-title xxlFont">On The Clock</h1>
+                        </div>
+                        <div class="panel-body">
+                            <h1 id="draftTeam"></h1>
+                            <h2 id="draftTimer">00:00</h2>
+                        </div>
+                        <div class="panel-footer">
+                            <button type="button" id="draftNext" class="btn btn-warning btn-lg btn-block xxlFont">Next Selection</button>
+
+                        </div>
                     </div>
-                    <div class="clearfix"/>
+
+                    <div class="col-xs-12">
+                        <p>&nbsp;</p>
+                        <h2 class="text-large">
+                            <span id="draftRound"></span>
+                            <span id="draftRoundOf"></span>
+                        </h2>
+                        <h3 class="text-large">
+                            <span id="selectionRound"></span>
+                            <span id="selectionRoundOf"></span>
+                        </h3>
+
+                        <h4 id="draftPercent"></h4>
+                        <p>&nbsp;</p>
+
+
+                    </div>
+                    <div class="clearfix" />
                 </div>
             </form>
 
@@ -114,6 +133,7 @@
             var start;
             var end;
             var incr;
+            var s = 1; //selection
 
             // odd rounds (1, 3, 5, ...) count up from 1 ... N
             if (r % 2 == 1) {
@@ -130,7 +150,8 @@
             for (var t = start; end(t); t += incr) {
                 count += 1;
                 var percent = count / total * 100;
-                draft.push({ "round": r, "rounds": rounds, "team": t, "teams": teams, "percent": percent });
+                draft.push({ "round": r, "rounds": rounds, "selection": s, "team": t, "teams": teams, "percent": percent });
+                s += 1;
             }
 
         }
@@ -159,8 +180,10 @@
             // update display
             $('#draftRound').text('Round ' + current.round);
             $('#draftRoundOf').text('of ' + current.rounds);
+            $('#selectionRound').text('Selection ' + current.selection);
+            $('#selectionRoundOf').text('of ' + current.teams);
             $('#draftTeam').text('Player ' + current.team);
-            $('#draftPercent').text(current.percent.toFixed(1) + '%');
+            $('#draftPercent').text(current.percent.toFixed(1) + '% Complete');
 
             // record when this player started
             start = new Date();
